@@ -50,9 +50,12 @@ and per-motor current command: friction FF, bias learning, damping, rate limit.
 - No need to declare "how many motors are connected": we try all; if conn=false we skip
 - Velocity LPF is inside computeOmegaFromEncLPF() (avoid double LPF outside)
 */
-
+struct EncVelState;
+struct CtrlState;
 #include <SPI.h>
-#include <TimerOne.h>
+//#include <TimerOne.h>
+#include <IntervalTimer.h>
+IntervalTimer ctrlTimer;
 #include <math.h>
 // #pragma GCC diagnostic error "-Wshadow"   // (optional) turn shadowing into a compile error
 
@@ -62,8 +65,8 @@ and per-motor current command: friction FF, bias learning, damping, rate limit.
 #define LED2h 19
 #define LED2k 18
 
-#define SS1h 7
-#define SS1k 38
+#define SS1h 38
+#define SS1k 7
 #define SS2h 6
 #define SS2k 5
 
@@ -400,15 +403,16 @@ void setup() {
   }
 
   // Start control ISR
-  Timer1.initialize(1000000 / control_freq_hz);
-  Timer1.attachInterrupt(timerISR);
+  ctrlTimer.begin(timerISR, 1000000 / control_freq_hz); // period in us
+  //Timer1.initialize(1000000 / control_freq_hz);
+  //Timer1.attachInterrupt(timerISR);
 }
 
 // ========================== Main loop ===============================
 void loop() {
   // Example: update per-motor torque references here if you want
   // TPREF_1H = 0.00f;
-  TPREF_1K = 0.02f;
+  TPREF_1K = 0.0f;
   // TPREF_2H = -0.01f;
   // TPREF_2K = 0.00f;
 
