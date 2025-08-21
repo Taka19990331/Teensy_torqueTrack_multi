@@ -51,6 +51,7 @@ and per-motor current command: friction FF, bias learning, damping, rate limit.
 - Velocity LPF is inside computeOmegaFromEncLPF() (avoid double LPF outside)
 */
 
+#include "MotorStates.h"
 #include <SPI.h>
 #include <TimerOne.h>
 #include <math.h>
@@ -133,25 +134,7 @@ byte last_rx_buf[12];
 byte last_tx_buf[12];
 
 // ========================== Per-motor state =========================
-// Encoder unwrap + velocity + LPF state
-struct EncVelState {
-  bool      initialized = false;
-  long      prev_raw19  = 0;     // last 19-bit raw encoder sample
-  long long acc         = 0;     // unwrapped cumulative counts
-  long long acc_prev1   = 0;     // cum[n-1]
-  long long acc_prev2   = 0;     // cum[n-2]
-  uint8_t   warm        = 0;     // warm-up counter for 3-pt diff
-  float     omega_lpf   = 0.0f;  // LPF state
-  float     omega       = 0.0f;  // last filtered velocity [rad/s]
-};
-
-// Control-side state per motor
-struct CtrlState {
-  float tau_bias      = 0.0f;  // learned torque bias [Nm]
-  float cur_cmd_prev  = 0.0f;  // previous command for rate limiting [A]
-  int   last_sign     = 0;     // sign memory for stabilized friction sign
-  float i_meas_lpf    = 0.0f;  // measured current LPF [A]
-};
+// State structures are defined in MotorStates.h
 
 // Arrays indexed by MotorId
 EncVelState enc_state[MOTOR_COUNT];
