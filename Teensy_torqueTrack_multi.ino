@@ -80,6 +80,8 @@ inline const char* motorName(MotorId m) {
 
 // Chip select pins (match your wiring)
 const int SS_PIN[MOTOR_COUNT] = { SS1h, SS1k, SS2h, SS2k };
+// Servo Switch
+bool servo = false;
 
 // ========================== Motor / model params =====================
 // Motor torque constant
@@ -387,6 +389,8 @@ void setup() {
   pinMode(LED2h, OUTPUT);
   pinMode(LED2k, OUTPUT);
 
+  pinMode(33, INPUT);
+
   // Precompute IIR alphas
   omega_alpha = iirAlpha(omega_fc_hz, dt);
   bias_alpha  = iirAlpha(bias_cutoff_hz, dt);
@@ -402,6 +406,7 @@ void setup() {
     conn_m[m] = ok;
   }
 
+  attachInterrupt(digitalPinToInterrupt(33), servoSwch, FALLING);
   // Start control ISR
   ctrlTimer.begin(timerISR, 1000000 / control_freq_hz); // period in us
   //Timer1.initialize(1000000 / control_freq_hz);
@@ -452,4 +457,14 @@ void timerISR() {
   //   Serial.print(" w="); Serial.print(OMEGA_1H,4);
   //   Serial.print(" i_cmd="); Serial.println(CURCMD_1H,4);
   // }
+}
+
+void servoSwch() {
+  static unsigned long lastMs = 0;  // local static variable (keeps value between calls)
+  unsigned long now = millis();
+
+  if ((now - lastMs) > 100) {
+    servo = !servo;
+    lastMs = now;
+  }
 }
